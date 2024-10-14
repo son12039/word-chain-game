@@ -20,7 +20,6 @@ export const keywordCheck = async (keyword) => {
       keyword
     )}`
   );
-  const result = parseXML(response.data);
-  console.log(result);
-  return result;
+  const { word, definition } = parseXML(response.data);
+  return { word, definition };
 };

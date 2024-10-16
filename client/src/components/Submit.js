@@ -1,38 +1,62 @@
 import React, { useState, useEffect } from "react";
 import { keywordCheck } from "../api/keywordCheck";
 import Modal from "./Modal";
+import { getWordlist,addWord } from "../api/wordlistAPI";
 const Submit = () => {
   const [nickname, setNickname] = useState("");
   const [userInput, setUserInput] = useState("");
   const [desc, setDesc] = useState("");
   const [keywordList, setKeywordList] = useState([]);
-  const [word, setWord] = useState("시작할 단어 입력");
+  const [lastword, setLastword] = useState({
+    nickname: "",
+    content: "시작단어입력"
+  });
   //////////////////////////
   const inputNick = async () => {
     setNickname(await Modal());
   };
   useEffect(() => {
     inputNick();
-  }, []);
-  //////////////////////////
+    fetchWordList();
 
+    const intervalId = setInterval(fetchWordList, 1);
+    return () => clearInterval(intervalId);
+  }, []);
+  useEffect(() => {
+    if(keywordList.length!==0){
+      setLastword({
+        nickname:keywordList[keywordList.length-1].nickname,
+        content: keywordList[keywordList.length-1].content
+      })
+    }      
+  }, [keywordList]);
+  //////////////////////////
+  const fetchWordList = async () => {
+      let words = await getWordlist();
+      console.log(words.length);
+      if(words.length>=10){
+        words = words.slice(words.length-11,words.length-1);
+      } 
+      setKeywordList(words);
+       
+  };
   //////////////////////
 
   const keyCheck = async (keyword) => {
     try {
       const re = await keywordCheck(keyword);
-      if (re.word != "")
-        //여기에 제약조건추가
-        setDesc(re.word + " : " + re.definition);
-      setWord(re.word);
-      setKeywordList((prevList) => [
-        ...prevList,
-        { nick: nickname, keyword: re.word },
-      ]);
+      await addWord({
+        content: keyword,
+        nickname: nickname
+      })
+      if(keyword===re.word){
+      setDesc(re.word + " : " + re.definition);
+      } else {
+        setDesc("없는 단어에요");
+      }
     } catch {
       setDesc("없는 단어에요");
     }
-
     setUserInput("");
   };
 
@@ -43,7 +67,7 @@ const Submit = () => {
 
   return (
     <>
-      <h2>{nickname != "" ? nickname + " : " + word : word}</h2>
+      <h2>{lastword.nickname + " : " + lastword.content}</h2>
       <form onSubmit={onSubmit}>
         <input
           type="text"
@@ -57,7 +81,7 @@ const Submit = () => {
       </form>
       <ul>
         {keywordList?.map((item, index) => (
-          <li key={index}>{item.nick + " : " + item.keyword}</li>
+          <li key={index}>{item.nickname + " : " + item.content}</li>
         ))}
       </ul>
     </>

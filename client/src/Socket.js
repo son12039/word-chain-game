@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import Modal from "./components/Modal";
+import { user } from "./api/memberAPI";
 const Socket = () => {
   const serverURL = "http://localhost:3001";
   const [socket, setSocket] = useState(null);
   const [list, setList] = useState([]);
+  const [nickname, setNickname] = useState("");
   useEffect(() => {
     const socket = io(serverURL);
     setSocket(socket);
@@ -13,14 +16,20 @@ const Socket = () => {
     socket.on("wordlist", (List) => {
       setList(List.list);
     });
+    fetchUserInfo();
     return () => {
       socket.disconnect();
     };
   }, []);
-
+  const fetchUserInfo = async () => {
+    const login = await Modal();
+    user(login);
+    console.log(nickname);
+    setNickname(nickname);
+  };
   const [val, setVal] = useState("");
   const onClick = () => {
-    socket.emit("word", { msg: val });
+    socket.emit("word", { msg: val, nickname: nickname });
     setVal("");
   };
   const input = (e) => {
@@ -39,7 +48,10 @@ const Socket = () => {
       ></input>
       <ul>
         {list.length > 0 != 0 ? (
-          list.map((item, index) => item && <li key={index}>{item}</li>)
+          list.map(
+            (item, index) =>
+              item && <li key={index}>{item.nickname + " : " + item.msg}</li>
+          )
         ) : (
           <li></li>
         )}

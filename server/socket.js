@@ -14,8 +14,8 @@ export const createSocket = (server) => {
     console.log(socket.id + "연결");
     io.emit("wordlist", { list: list });
     socket.on("word", (word) => {
-      console.log(word.msg + " : " + socket.id);
-      list.push(word.msg);
+      console.log(word.nickname + " : " + word.msg);
+      list.push(word);
       io.emit("wordlist", { list: list });
     });
     socket.on("disconnect", () => {

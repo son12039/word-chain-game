@@ -15,7 +15,7 @@ export const createSocket = (server) => {
     io.emit("wordlist", { list: list });
     socket.on("word", (word) => {
       console.log(word.nickname + " : " + word.msg);
-      list.push(word);
+      list.unshift(word); //맨 앞에부터 넣기
       io.emit("wordlist", { list: list });
     });
     socket.on("disconnect", () => {

@@ -7,6 +7,7 @@ const Socket = () => {
   const [socket, setSocket] = useState(null);
   const [list, setList] = useState([]);
   const [nickname, setNickname] = useState("");
+  const [text, setText] = useState("로그인 또는 회원가입");
   useEffect(() => {
     const socket = io(serverURL);
     setSocket(socket);
@@ -22,11 +23,25 @@ const Socket = () => {
     };
   }, []);
   const fetchUserInfo = async () => {
-    const login = await Modal();
-    user(login);
-    console.log(nickname);
-    setNickname(nickname);
+    const login = await Modal(text);
+    const a = await user(login);
+    console.log("어라?" + a);
+    if (a == "실패") {
+      // setText("이미 존재하는 아이디입니다");
+
+      return;
+    }
+    setNickname(a);
   };
+  useEffect(() => {
+    if (text) {
+      Modal(text);
+    }
+  }, [text]);
+
+  useEffect(() => {
+    console.log(nickname);
+  }, [nickname]);
   const [val, setVal] = useState("");
   const onClick = () => {
     socket.emit("word", { msg: val, nickname: nickname });
@@ -39,7 +54,8 @@ const Socket = () => {
 
   return (
     <div>
-      <h1>안녕</h1>
+      <h1 className="Title">온라인끝말잇기게임</h1>
+      <h1>{nickname != "" ? nickname + "님" : ""}</h1>
       <button onClick={onClick}>보내기</button>
       <input
         onKeyDown={input}

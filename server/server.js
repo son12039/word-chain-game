@@ -20,11 +20,10 @@ app.post("/member/user", (req, res) => {
   if (nickname == "") {
     const loginQuery = `SELECT * FROM member WHERE id=?AND password=?`;
     connection.query(loginQuery, [id, password], (error, results) => {
-      console.log(results[0].nickname);
       if (error) {
         return res.status(500).json({ message: "로그인 실패", error });
       }
-      res.status(201).json({ message: nickname });
+      res.status(201).json({ message: results[0].nickname });
     });
   } else {
     const signupQuery = `INSERT INTO member (id, password, nickname) VALUES (?, ?, ?)`;
@@ -34,9 +33,9 @@ app.post("/member/user", (req, res) => {
       [id, password, nickname],
       (error, results) => {
         if (error) {
-          return res.status(500).json({ message: "회원가입 실패", error });
+          return res.status(201).json({ message: "실패" });
         }
-        res.status(201).json({ message: nickname });
+        res.status(201).json({ message: results[0].nickname });
       }
     );
   }

@@ -1,9 +1,9 @@
 // Modal.js
 import Swal from "sweetalert2";
 
-const Modal = async () => {
+const Modal = async (text) => {
   const { value: formValues } = await Swal.fire({
-    title: "로그인 또는 회원가입",
+    title: text,
     html: `
       <input id="swal-input-id" class="swal2-input custom-input" placeholder="ID(6~12자 영문자,숫자)" autocomplete="off">
       <input type="password" id="swal-input-password" class="swal2-input custom-input" placeholder="PWD(8~14자 영문자,숫자)" autocomplete="off">

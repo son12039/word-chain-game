@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { keywordCheck } from "../api/keywordCheck";
 import Modal from "./Modal";
-import { getWordlist,addWord } from "../api/wordlistAPI";
+import { getWordlist, addWord } from "../api/wordlistAPI";
+
 const Submit = () => {
   const [nickname, setNickname] = useState("");
   const [userInput, setUserInput] = useState("");
@@ -9,7 +10,7 @@ const Submit = () => {
   const [keywordList, setKeywordList] = useState([]);
   const [lastword, setLastword] = useState({
     nickname: "",
-    content: "시작단어입력"
+    content: "시작단어입력",
   });
   //////////////////////////
   const inputNick = async () => {
@@ -23,34 +24,32 @@ const Submit = () => {
     return () => clearInterval(intervalId);
   }, []);
   useEffect(() => {
-    if(keywordList.length!==0){
+    if (keywordList.length !== 0) {
       setLastword({
-        nickname:keywordList[keywordList.length-1].nickname,
-        content: keywordList[keywordList.length-1].content
-      })
-    }      
+        nickname: keywordList[keywordList.length - 1].nickname,
+        content: keywordList[keywordList.length - 1].content,
+      });
+    }
   }, [keywordList]);
   //////////////////////////
   const fetchWordList = async () => {
-      let words = await getWordlist();
-      console.log(words.length);
-      if(words.length>=10){
-        words = words.slice(words.length-11,words.length-1);
-      } 
-      setKeywordList(words);
-       
+    let words = await getWordlist();
+    console.log(words.length);
+    if (words.length >= 10) {
+      words = words.slice(words.length - 11, words.length - 1);
+    }
+    setKeywordList(words);
   };
   //////////////////////
-
   const keyCheck = async (keyword) => {
     try {
       const re = await keywordCheck(keyword);
       await addWord({
         content: keyword,
-        nickname: nickname
-      })
-      if(keyword===re.word){
-      setDesc(re.word + " : " + re.definition);
+        nickname: nickname,
+      });
+      if (keyword === re.word) {
+        setDesc(re.word + " : " + re.definition);
       } else {
         setDesc("없는 단어에요");
       }

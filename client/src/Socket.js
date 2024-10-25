@@ -2,12 +2,17 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Modal from "./components/Modal";
 import { user } from "./api/memberAPI";
+import { useSelector, useDispatch } from "react-redux";
+import { initial, alter } from "./store/textSlice";
+
 const Socket = () => {
   const serverURL = "http://localhost:3001";
   const [socket, setSocket] = useState(null);
   const [list, setList] = useState([]);
   const [nickname, setNickname] = useState("");
-  const [text, setText] = useState("로그인 또는 회원가입");
+  const dispatch = useDispatch();
+  const text = useSelector((state) => state.text.text);
+
   useEffect(() => {
     const socket = io(serverURL);
     setSocket(socket);
@@ -23,25 +28,25 @@ const Socket = () => {
     };
   }, []);
   const fetchUserInfo = async () => {
-    const login = await Modal(text);
-    const a = await user(login);
-    console.log("어라?" + a);
-    if (a == "실패") {
-      // setText("이미 존재하는 아이디입니다");
+    const a = await Modal(text);
 
-      return;
+    if (a !== undefined) {
+      if (a === "로그인 실패") {
+        dispatch(alter());
+        return;
+      } else {
+        setNickname(a);
+      }
     }
-    setNickname(a);
   };
+
   useEffect(() => {
-    if (text) {
-      Modal(text);
-    }
+    fetchUserInfo();
   }, [text]);
 
-  useEffect(() => {
-    console.log(nickname);
-  }, [nickname]);
+  const init = () => {
+    dispatch(initial());
+  };
   const [val, setVal] = useState("");
   const onClick = () => {
     socket.emit("word", { msg: val, nickname: nickname });

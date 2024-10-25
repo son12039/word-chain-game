@@ -6,7 +6,7 @@ import { createDBConnection } from "./mysql.js";
 const app = express();
 const port = 3001;
 app.use(cors());
-// 폼이나 JSON 데이터 파싱해서 JS객체로 변환
+// 폼이나 JSON 데이터 파싱해서 JS객체로 변환함
 app.use(express.json());
 const server = http.createServer(app);
 createSocket(server);
@@ -18,12 +18,14 @@ app.post("/member/user", (req, res) => {
   const { id, password, nickname } = req.body;
 
   if (nickname == "") {
-    const loginQuery = `SELECT * FROM member WHERE id=?AND password=?`;
+    const loginQuery = `SELECT * FROM member WHERE id=? AND password=?`;
     connection.query(loginQuery, [id, password], (error, results) => {
-      if (error) {
-        return res.status(500).json({ message: "로그인 실패", error });
-      }
-      res.status(201).json({ message: results[0].nickname });
+      // if (error) {
+      //   return res.status(500).json({ message: "로그인 실패", error });
+      // }
+      let message = results.length === 0 ? "로그인 실패" : results[0].nickname;
+
+      res.status(201).json({ message });
     });
   } else {
     const signupQuery = `INSERT INTO member (id, password, nickname) VALUES (?, ?, ?)`;
@@ -32,10 +34,9 @@ app.post("/member/user", (req, res) => {
       signupQuery,
       [id, password, nickname],
       (error, results) => {
-        if (error) {
-          return res.status(201).json({ message: "실패" });
-        }
-        res.status(201).json({ message: results[0].nickname });
+        if (error) res.status(500);
+        console.log("어라?");
+        res.status(201).json({ nickname });
       }
     );
   }

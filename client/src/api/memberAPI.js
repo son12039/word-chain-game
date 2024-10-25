@@ -6,5 +6,6 @@ const instance = axios.create({
 
 export const user = async (data) => {
   const result = await instance.post("user", data);
+  console.log(result);
   return result.data.message;
 };

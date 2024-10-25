@@ -1,5 +1,6 @@
 // Modal.js
 import Swal from "sweetalert2";
+import { user } from "../api/memberAPI";
 
 const Modal = async (text) => {
   const { value: formValues } = await Swal.fire({
@@ -12,7 +13,7 @@ const Modal = async (text) => {
     focusConfirm: false,
     confirmButtonText: "확인",
     allowOutsideClick: false,
-    preConfirm: () => {
+    preConfirm: async () => {
       const id = document.getElementById("swal-input-id").value;
       const password = document.getElementById("swal-input-password").value;
       const nickname = document.getElementById("swal-input-nickname").value;
@@ -25,7 +26,13 @@ const Modal = async (text) => {
         return false;
       }
 
-      return { id, password, nickname };
+      const userInfo = await user({ id, password, nickname });
+      if (userInfo === "로그인 실패") {
+        Swal.showValidationMessage("로그인에 실패했습니다.");
+        return false;
+      }
+
+      return { id, password, userInfo };
     },
     customClass: {
       popup: "custom-popup",

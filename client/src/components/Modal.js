@@ -8,7 +8,7 @@ const Modal = async (text) => {
     html: `
       <input id="swal-input-id" class="swal2-input custom-input" placeholder="ID(6~12자 영문자,숫자)" autocomplete="off">
       <input type="password" id="swal-input-password" class="swal2-input custom-input" placeholder="PWD(8~14자 영문자,숫자)" autocomplete="off">
-      <input type="text" id="swal-input-nickname" class="swal2-input custom-input" placeholder="닉네임(4자이하 회원가입 시에만)" autocomplete="off">
+      <input type="text" id="swal-input-nickname" class="swal2-input custom-input" placeholder="닉네임(한글2~4자 회원가입 시에만)" autocomplete="off">
     `,
     focusConfirm: false,
     confirmButtonText: "확인",
@@ -16,23 +16,52 @@ const Modal = async (text) => {
     preConfirm: async () => {
       const id = document.getElementById("swal-input-id").value;
       const password = document.getElementById("swal-input-password").value;
-      const nickname = document.getElementById("swal-input-nickname").value;
+      let nickname = document.getElementById("swal-input-nickname").value;
+
       if (!id || id.trim() === "") {
         Swal.showValidationMessage("아이디를 입력해주세요!");
         return false;
       }
+      const idRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/
+      if (!idRegex.test(id)) {
+        Swal.showValidationMessage("아이디는 영문자,그리고 숫자 각각 1개이상포함 6~12자만 입력 가능합니다.");
+        return false;
+      }
+
+
       if (!password || password.trim() === "") {
         Swal.showValidationMessage("비밀번호를 입력해주세요!");
         return false;
       }
-
-      const userInfo = await user({ id, password, nickname });
-      if (userInfo === "로그인 실패") {
-        Swal.showValidationMessage("로그인에 실패했습니다.");
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/
+      if (!passwordRegex.test(password)) {
+        Swal.showValidationMessage("비밀번호는 영문자,그리고 숫자 각각 1개이상포함 8~14자만 입력 가능합니다.");
         return false;
       }
 
-      return { id, password, userInfo };
+
+      const nicknameRegex = /^[가-힣]{2,4}$/;
+      if (!nicknameRegex.test(nickname)&&nickname!="") {
+        Swal.showValidationMessage("닉네임은 2~4자 한글만 입력 가능합니다.");
+        document.getElementById("swal-input-nickname").value = "";
+        return false;
+      }
+
+      let a = String(Math.floor(Math.random()*9000+1000));
+      if(nickname!=""){
+        nickname = nickname+"#"+a
+      }
+      const userInfo = await user({ id, password, nickname  });
+      if (userInfo === "로그인 실패") {
+        Swal.showValidationMessage("없는 계정입니다. 회원가입을 해주세요");
+        return false;
+      } else if (userInfo === undefined){
+        Swal.showValidationMessage("존재하는 아이디입니다");
+        return false;
+      }
+
+
+      return { userInfo };
     },
     customClass: {
       popup: "custom-popup",

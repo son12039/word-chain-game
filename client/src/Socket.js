@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Modal from "./components/Modal";
-import { user } from "./api/memberAPI";
 import { useSelector, useDispatch } from "react-redux";
 import { initial, alter } from "./store/textSlice";
 
@@ -29,13 +28,13 @@ const Socket = () => {
   }, []);
   const fetchUserInfo = async () => {
     const a = await Modal(text);
-
+    console.log(a);
     if (a !== undefined) {
       if (a === "로그인 실패") {
         dispatch(alter());
         return;
       } else {
-        setNickname(a);
+        setNickname(a.userInfo);
       }
     }
   };

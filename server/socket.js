@@ -15,9 +15,6 @@ export const createSocket = (server) => {
     console.log(socket.id + "연결");
     io.emit("wordlist", { list: list });
     socket.on("word", (word) => {
-      console.log(word.nickname + " : " + word.msg);
-      console.log(word.msg[word.msg.length - 1]);
-      console.log(previousWord[0]);
       previousWord = word.msg;
       list.unshift(word); //맨 앞에부터 넣기
       io.emit("wordlist", { list: list });
@@ -26,5 +23,6 @@ export const createSocket = (server) => {
     socket.on("disconnect", () => {
       console.log(socket.id + "끊김");
     });
+
   });
 };

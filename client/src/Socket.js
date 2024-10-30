@@ -1,51 +1,45 @@
 import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Modal from "./components/Modal";
-import { useSelector, useDispatch } from "react-redux";
-import { initial, alter } from "./store/textSlice";
-
 const Socket = () => {
   const serverURL = "http://localhost:3001";
   const [socket, setSocket] = useState(null);
   const [list, setList] = useState([]);
   const [nickname, setNickname] = useState("");
-  const dispatch = useDispatch();
-  const text = useSelector((state) => state.text.text);
-
+  const [userList, setUserList] = useState([]);
   useEffect(() => {
     const socket = io(serverURL);
     setSocket(socket);
     socket.on("connect", () => {
       console.log("서버에 연결되었습니다. Socket ID:", socket.id);
     });
+
     socket.on("wordlist", (List) => {
       setList(List.list);
     });
+    socket.on("test", (data) => {
+      console.log(data.msg);
+    });
+    socket.on("userlist", (data) => {
+      setUserList(data.userlist);
+    });
+
     fetchUserInfo();
     return () => {
       socket.disconnect();
     };
   }, []);
   const fetchUserInfo = async () => {
-    const a = await Modal(text);
-    console.log(a);
-    if (a !== undefined) {
-      if (a === "로그인 실패") {
-        dispatch(alter());
-        return;
-      } else {
-        setNickname(a.userInfo);
-      }
-    }
+    const a = await Modal();
+    if (a) setNickname(a.userInfo);
   };
 
   useEffect(() => {
-    fetchUserInfo();
-  }, [text]);
+    if (nickname) {
+      socket.emit("enter", { nickname });
+    }
+  }, [nickname]);
 
-  const init = () => {
-    dispatch(initial());
-  };
   const [val, setVal] = useState("");
   const onClick = () => {
     socket.emit("word", { msg: val, nickname: nickname });
@@ -73,9 +67,14 @@ const Socket = () => {
               item && <li key={index}>{item.nickname + " : " + item.msg}</li>
           )
         ) : (
-          <li></li>
+          <></>
         )}
       </ul>
+      {userList.length > 0 != 0 ? (
+        userList.map((item, index) => <div key={index}>{item.nickname}</div>)
+      ) : (
+        <></>
+      )}
     </div>
   );
 };

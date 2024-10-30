@@ -15,7 +15,7 @@ export const createDBConnection = () => {
       console.error("데이터베이스 연결 실패:", error);
       return;
     }
-    console.log("데이터베이스에 연결되었습니다.");
+    console.log("데이터베이스 연결성공");
   });
 
   return DBConnection;

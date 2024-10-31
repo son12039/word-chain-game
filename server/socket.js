@@ -1,4 +1,5 @@
 import { Server } from "socket.io";
+import { wordCheck } from "./wordAPI.js";
 export const createSocket = (server) => {
   let list = [];
   let userlist = [];
@@ -14,17 +15,29 @@ export const createSocket = (server) => {
 
   io.on("connection", (socket) => {
     console.log(socket.id + "연결");
-    io.emit("wordlist", { list: list });
-    socket.on("word", (word) => {
+
+    socket.on("word", async (word) => {
+      const definitions = await wordCheck(word.msg);
+      if (definitions) {
+        console.log(word.msg.charAt(0), "현");
+        console.log(previousWord, "전");
+
+        list.unshift(word);
+        io.to("testroom").emit("wordAdd", {
+          word: word,
+          definitions: definitions,
+        });
+      } else {
+        io.to("testroom").emit("wrongword", { wrong: word.nickname });
+      }
       previousWord = word.msg;
-      list.unshift(word); //맨 앞에부터 넣기
-      io.emit("wordlist", { list: list });
     });
+
     socket.on("enter", (data) => {
       socket.join("testroom");
+      io.to("testroom").emit("wordlist", { list: list });
       io.to("testroom").emit("test", { msg: data.nickname + "님 접속" });
       userlist[socket.id] = { nickname: data.nickname };
-      console.log(userlist);
       io.to("testroom").emit("userlist", { userlist: Object.values(userlist) });
     });
 

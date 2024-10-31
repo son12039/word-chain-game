@@ -6,6 +6,8 @@ const Socket = () => {
   const [socket, setSocket] = useState(null);
   const [list, setList] = useState([]);
   const [nickname, setNickname] = useState("");
+  const [lastText, setLastText] = useState("온라인끝말잇기게임");
+  const [definitions, setDefinitions] = useState([]);
   const [userList, setUserList] = useState([]);
   useEffect(() => {
     const socket = io(serverURL);
@@ -16,12 +18,22 @@ const Socket = () => {
 
     socket.on("wordlist", (List) => {
       setList(List.list);
+      console.log(List.definitions);
+      setDefinitions(List.definitions);
+    });
+    socket.on("wordAdd", (data) => {
+      console.log(data);
+      setList((prev) => [...prev, data.word]);
+      setDefinitions(data.definitions);
     });
     socket.on("test", (data) => {
       console.log(data.msg);
     });
     socket.on("userlist", (data) => {
       setUserList(data.userlist);
+    });
+    socket.on("wrongword", (data) => {
+      setLastText(data.wrong + "가 잘못된 단어를 입력ㅋㅋㅋ");
     });
 
     fetchUserInfo();
@@ -52,7 +64,7 @@ const Socket = () => {
 
   return (
     <div>
-      <h1 className="Title">온라인끝말잇기게임</h1>
+      <h1 className="Title">{lastText}</h1>
       <h1>{nickname != "" ? nickname + "님" : ""}</h1>
       <button onClick={onClick}>보내기</button>
       <input
@@ -70,11 +82,22 @@ const Socket = () => {
           <></>
         )}
       </ul>
-      {userList.length > 0 != 0 ? (
+      {userList?.length > 0 != 0 ? (
         userList.map((item, index) => <div key={index}>{item.nickname}</div>)
       ) : (
         <></>
       )}
+      <div className="definitions">
+        {definitions?.length > 0 != 0 ? (
+          definitions.map((item, index) => (
+            <div key={index} className="definition">
+              {item}
+            </div>
+          ))
+        ) : (
+          <></>
+        )}
+      </div>
     </div>
   );
 };

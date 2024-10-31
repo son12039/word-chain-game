@@ -6,13 +6,17 @@ const Modal = async () => {
   const { value: formValues } = await Swal.fire({
     title: "로그인 혹은 회원가입",
     html: `
-      <input id="swal-input-id" class="swal2-input custom-input" placeholder="ID(6~12자 영문자,숫자)" autocomplete="off">
-      <input type="password" id="swal-input-password" class="swal2-input custom-input" placeholder="PWD(8~14자 영문자,숫자)" autocomplete="off">
+      <input id="swal-input-id" class="swal2-input custom-input" placeholder="ID(6~12자 영문자,숫자)"
+      value = "qweqwe123" autocomplete="off">
+      <input type="password" id="swal-input-password" 
+      value = "qweqwe123"
+      class="swal2-input custom-input" placeholder="PWD(8~14자 영문자,숫자)" autocomplete="off">
       <input type="text" id="swal-input-nickname" class="swal2-input custom-input" placeholder="닉네임(한글2~4자 회원가입 시에만)" autocomplete="off">
     `,
     focusConfirm: false,
     confirmButtonText: "확인",
     allowOutsideClick: false,
+    allowEscapeKey: false,
     preConfirm: async () => {
       const id = document.getElementById("swal-input-id").value;
       const password = document.getElementById("swal-input-password").value;
@@ -34,11 +38,12 @@ const Modal = async () => {
         Swal.showValidationMessage("비밀번호를 입력해주세요!");
         return false;
       }
-      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/;
+      const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,14}$/;
       if (!passwordRegex.test(password)) {
         Swal.showValidationMessage(
           "비밀번호는 영문자,그리고 숫자 각각 1개이상포함 8~14자만 입력 가능합니다."
         );
+
         return false;
       }
 
@@ -50,7 +55,7 @@ const Modal = async () => {
       }
       const userInfo = await user({ id, password, nickname });
       if (userInfo === "로그인 실패") {
-        Swal.showValidationMessage("없는 계정입니다. 회원가입을 해주세요");
+        Swal.showValidationMessage("잘못된 로그인 정보이거나,없는 계정입니다.");
         return false;
       } else if (userInfo === undefined) {
         Swal.showValidationMessage("존재하는 아이디입니다");
@@ -61,6 +66,16 @@ const Modal = async () => {
     },
     customClass: {
       popup: "custom-popup",
+    },
+    willOpen: () => {
+      const inputElements = document.querySelectorAll(".swal2-input");
+      inputElements.forEach((input) => {
+        input.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            Swal.clickConfirm();
+          }
+        });
+      });
     },
   });
 

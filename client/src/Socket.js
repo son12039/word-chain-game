@@ -22,20 +22,23 @@ const Socket = () => {
       setDefinitions(List.definitions);
     });
     socket.on("wordAdd", (data) => {
-      console.log(data);
       setList((prev) => [...prev, data.word]);
       setDefinitions(data.definitions);
     });
-    socket.on("test", (data) => {
-      console.log(data.msg);
-    });
-    socket.on("userlist", (data) => {
+
+    socket.on("userList", (data) => {
       setUserList(data.userlist);
     });
-    socket.on("wrongword", (data) => {
-      setLastText(data.wrong + "가 잘못된 단어를 입력ㅋㅋㅋ");
+    socket.on("runuserList", (data) => {
+      setUserList(data.userlist);
+      setLastText(data.runuser + "가 호다닥 도망ㅋㅋㅋ");
     });
-
+    socket.on("wrongWord", (data) => {
+      setLastText(data.wrong + "가 잘못된 단어 입력ㅋㅋㅋ");
+    });
+    socket.on("unlikeWord", (data) => {
+      setLastText(data.unlike + "가 안 이어지는 단어 입력ㅋㅋㅋ");
+    });
     fetchUserInfo();
     return () => {
       socket.disconnect();

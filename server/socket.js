@@ -5,6 +5,7 @@ export const createSocket = (server) => {
   let userlist = [];
   let previousWord = "";
   let countdown = 5;
+  let start = false;
   const io = new Server(server, {
     cors: {
       cors: {
@@ -21,30 +22,44 @@ export const createSocket = (server) => {
   };
   io.on("connection", (socket) => {
     console.log(socket.id + "연결");
-
+    if (start) {
+      socket.emit("late", {});
+    }
     socket.on("word", async (word) => {
-      const definitions = await wordCheck(word.msg);
-      if (definitions) {
-        if (word.msg.charAt(0) == previousWord || previousWord == "") {
-          previousWord = word.msg.charAt(word.msg.length - 1);
-          list.unshift(word);
-          io.to("testroom").emit("wordAdd", {
-            word: word,
-            definitions: definitions,
-          });
+      console.log(word.msg);
+      if (list.some((item) => item.msg === word.msg)) {
+        reset();
+        io.to("testroom").emit("overlapWord", {
+          overlapWord: word.nickname,
+        });
+      } else {
+        const definitions = await wordCheck(word.msg);
+        if (definitions) {
+          if (word.msg.charAt(0) == previousWord || previousWord == "") {
+            previousWord = word.msg.charAt(word.msg.length - 1);
+            list.unshift(word);
+            io.to("testroom").emit("wordAdd", {
+              word: word,
+              definitions: definitions,
+            });
+          } else {
+            reset();
+            io.to("testroom").emit("unlikeWord", {
+              unlike: word.nickname,
+            });
+          }
         } else {
           reset();
-          io.to("testroom").emit("unlikeWord", {
-            unlike: word.nickname,
-          });
+          io.to("testroom").emit("wrongWord", { wrong: word.nickname });
         }
-      } else {
-        reset();
-        io.to("testroom").emit("wrongWord", { wrong: word.nickname });
       }
     });
     socket.on("start", (data) => {
       io.to("testroom").emit("start", { startUser: data.nickname });
+    });
+    socket.on("end", () => {
+      console.log("엥");
+      io.to("testroom").emit("end", { userlist: Object.values(userlist) });
     });
     socket.on("enter", (data) => {
       socket.join("testroom");

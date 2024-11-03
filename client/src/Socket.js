@@ -11,7 +11,6 @@ const Socket = () => {
   const [definitions, setDefinitions] = useState([]);
   const [userList, setUserList] = useState([]);
   const socket = useSocket();
-  const startNickname = location.state ? location.state.nickname : "";
   useEffect(() => {
     setNickname(sessionStorage.getItem("nickname"));
     // if (getNickname == "") {
@@ -21,6 +20,9 @@ const Socket = () => {
       socket.on("wordList", (List) => {
         console.log(List);
         setList(List.list);
+      });
+      socket.on("late", () => {
+        console.log("이미 시작함");
       });
       socket.on("wordAdd", (data) => {
         setList((prev) => [...prev, data.word]);
@@ -32,15 +34,23 @@ const Socket = () => {
       socket.on("escapeUser", (data) => {
         setUserList(data.userlist);
         setLastText(data.runuser + "가 호다닥 도망ㅋㅋㅋ");
+        navigate("/");
       });
       socket.on("wrongWord", (data) => {
         point();
         setLastText(data.wrong + "가 잘못된 단어 입력ㅋㅋㅋ");
+        navigate("/");
+      });
+      socket.on("overlapWord", (data) => {
+        setLastText(data.overlapWord + "가 중복단어 입력ㅋㅋㅋ");
+        navigate("/");
       });
       socket.on("unlikeWord", (data) => {
         point();
         setLastText(data.unlike + "가 안 이어지는 단어 입력ㅋㅋㅋ");
+        navigate("/");
       });
+
       return () => {
         socket.disconnect();
       };

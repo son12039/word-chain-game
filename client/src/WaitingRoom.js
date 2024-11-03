@@ -17,6 +17,11 @@ const WaitingRoom = () => {
       socket.on("connect", () => {
         console.log("서버에 연결되었습니다. Socket ID:", socket.id);
       });
+
+      socket.on("end", (data) => {
+        console.log("어라");
+        setUserList(data.userList);
+      });
       socket.on("userList", (data) => {
         setUserList(data.userlist);
       });
@@ -29,8 +34,9 @@ const WaitingRoom = () => {
     }
   }, [socket]);
   useEffect(() => {
-    if (nickname) {
-      socket.emit("enter", { nickname });
+    if (socket) {
+      console.log("요청");
+      socket.emit("end", () => {});
     }
   }, [nickname]);
 

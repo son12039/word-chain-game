@@ -1,10 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-import Submit from "./components/Submit";
 import Socket from "./Socket";
+import WaitingRoom from "./WaitingRoom";
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: "/game",
     element: <Socket />,
+  },
+  {
+    path: "/",
+    element: <WaitingRoom />,
   },
 ]);
 

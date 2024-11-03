@@ -1,59 +1,62 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-import Modal from "./components/Modal";
+import { useSocket } from "./SocketContext";
+import { useLocation, useNavigate } from "react-router-dom";
+import { point as changePoint } from "./api/memberAPI";
 const Socket = () => {
-  const serverURL = "http://localhost:3001";
-  const [socket, setSocket] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [nickname, setNickname] = useState("");
   const [lastText, setLastText] = useState("온라인끝말잇기게임");
   const [definitions, setDefinitions] = useState([]);
   const [userList, setUserList] = useState([]);
+  const socket = useSocket();
+  const startNickname = location.state ? location.state.nickname : "";
   useEffect(() => {
-    const socket = io(serverURL);
-    setSocket(socket);
-    socket.on("connect", () => {
-      console.log("서버에 연결되었습니다. Socket ID:", socket.id);
-    });
-
-    socket.on("wordlist", (List) => {
-      setList(List.list);
-      console.log(List.definitions);
-      setDefinitions(List.definitions);
-    });
-    socket.on("wordAdd", (data) => {
-      setList((prev) => [...prev, data.word]);
-      setDefinitions(data.definitions);
-    });
-
-    socket.on("userList", (data) => {
-      setUserList(data.userlist);
-    });
-    socket.on("runuserList", (data) => {
-      setUserList(data.userlist);
-      setLastText(data.runuser + "가 호다닥 도망ㅋㅋㅋ");
-    });
-    socket.on("wrongWord", (data) => {
-      setLastText(data.wrong + "가 잘못된 단어 입력ㅋㅋㅋ");
-    });
-    socket.on("unlikeWord", (data) => {
-      setLastText(data.unlike + "가 안 이어지는 단어 입력ㅋㅋㅋ");
-    });
-    fetchUserInfo();
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
-  const fetchUserInfo = async () => {
-    const a = await Modal();
-    if (a) setNickname(a.userInfo);
-  };
+    setNickname(sessionStorage.getItem("nickname"));
+    // if (getNickname == "") {
+    //   navigate("/");
+    // }
+    if (socket) {
+      socket.on("wordList", (List) => {
+        console.log(List);
+        setList(List.list);
+      });
+      socket.on("wordAdd", (data) => {
+        setList((prev) => [...prev, data.word]);
+        setDefinitions(data.definitions);
+      });
+      socket.on("userList", (data) => {
+        setUserList(data.userlist);
+      });
+      socket.on("escapeUser", (data) => {
+        setUserList(data.userlist);
+        setLastText(data.runuser + "가 호다닥 도망ㅋㅋㅋ");
+      });
+      socket.on("wrongWord", (data) => {
+        point();
+        setLastText(data.wrong + "가 잘못된 단어 입력ㅋㅋㅋ");
+      });
+      socket.on("unlikeWord", (data) => {
+        point();
+        setLastText(data.unlike + "가 안 이어지는 단어 입력ㅋㅋㅋ");
+      });
+      return () => {
+        socket.disconnect();
+      };
+    }
+  }, [socket]);
 
   useEffect(() => {
     if (nickname) {
       socket.emit("enter", { nickname });
     }
   }, [nickname]);
+
+  const point = async () => {
+    const point = 3;
+    await changePoint({ nickname, point });
+  };
 
   const [val, setVal] = useState("");
   const onClick = () => {
@@ -72,7 +75,7 @@ const Socket = () => {
       <button onClick={onClick}>보내기</button>
       <input
         onKeyDown={input}
-        onChange={(e) => setVal(e.target.value)}
+        onChange={(e) => setVal(e.target.value.trim())}
         value={val}
       ></input>
       <ul>

@@ -16,7 +16,6 @@ server.listen(port, () => {
 const connection = createDBConnection();
 app.post("/member/user", (req, res) => {
   let { id, password, nickname } = req.body;
-  console.log(id, password, nickname, "진입");
   if (nickname == "") {
     const loginQuery = `SELECT * FROM member WHERE id=? AND password=?`;
     connection.query(loginQuery, [id, password], (error, results) => {
@@ -45,4 +44,17 @@ app.post("/member/user", (req, res) => {
       }
     );
   }
+});
+app.post("/member/point", (req, res) => {
+  let { point, nickname } = req.body;
+  const pointQuery = `UPDATE member SET point = point + ? WHERE nickname = ?`;
+  connection.query(pointQuery, [point, nickname], (error, results) => {
+    if (!error) {
+      console.log(point, "성공", nickname);
+      res.status(201).json({});
+    } else {
+      console.log("실패함");
+      res.status(201).json({});
+    }
+  });
 });

@@ -4,6 +4,7 @@ export const createSocket = (server) => {
   let list = [];
   let userlist = [];
   let previousWord = "";
+  let countdown = 5;
   const io = new Server(server, {
     cors: {
       cors: {
@@ -12,7 +13,12 @@ export const createSocket = (server) => {
       },
     },
   });
-
+  const reset = () => {
+    list = [];
+    io.to("testroom").emit("wordList", { list: list });
+    previousWord = "";
+    countdown = 5;
+  };
   io.on("connection", (socket) => {
     console.log(socket.id + "연결");
 
@@ -27,17 +33,20 @@ export const createSocket = (server) => {
             definitions: definitions,
           });
         } else {
+          reset();
           io.to("testroom").emit("unlikeWord", {
             unlike: word.nickname,
           });
         }
       } else {
+        reset();
         io.to("testroom").emit("wrongWord", { wrong: word.nickname });
       }
     });
-
+    socket.on("start", (data) => {
+      io.to("testroom").emit("start", { startUser: data.nickname });
+    });
     socket.on("enter", (data) => {
-      console.log("엥?");
       socket.join("testroom");
       io.to("testroom").emit("wordList", { list: list });
       userlist[socket.id] = { nickname: data.nickname };
@@ -48,7 +57,7 @@ export const createSocket = (server) => {
       if (socket.id in userlist) {
         let a = userlist[socket.id].nickname;
         delete userlist[socket.id];
-        io.to("testroom").emit("runuserList", {
+        io.to("testroom").emit("escapeUser", {
           userlist: Object.values(userlist),
           runuser: a,
         });

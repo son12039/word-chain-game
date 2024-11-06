@@ -9,7 +9,7 @@ const WaitingRoom = () => {
   const [userList, setUserList] = useState([]);
   const [nickname, setNickname] = useState("");
   const location = useLocation();
-  const state = location.state;
+  const state = location?.state;
   useEffect(() => {
     if (
       sessionStorage.getItem("nickname") == null ||
@@ -17,6 +17,8 @@ const WaitingRoom = () => {
     ) {
       sessionStorage.removeItem("nickname");
       fetchUserInfo();
+    } else {
+      setNickname(sessionStorage.getItem("nickname"));
     }
     if (socket) {
       socket.emit("userList", () => {});
@@ -40,6 +42,7 @@ const WaitingRoom = () => {
       });
       socket.on("userList", (data) => {
         setUserList(data.userlist);
+        console.log(data.userlist);
       });
       socket.on("start", (data) => {
         navigate("/game", { state: { startUser: data.startUser } });
@@ -81,6 +84,7 @@ const WaitingRoom = () => {
       <div className="back">
         <div className="waiting-room">
           <h1>대기실</h1>
+          {/* <div>{state}</div> */}
           <div className="status">
             <p>현재 접속중: {userList.length}</p>
           </div>

@@ -19,9 +19,6 @@ app.post("/member/user", (req, res) => {
   if (nickname == "") {
     const loginQuery = `SELECT * FROM member WHERE id=? AND password=?`;
     connection.query(loginQuery, [id, password], (error, results) => {
-      // if (error) {
-      //   return res.status(500).json({ message: "로그인 실패", error });
-      // }
       let nickname = results.length === 0 ? "로그인 실패" : results[0].nickname;
 
       res.status(201).json({ nickname });

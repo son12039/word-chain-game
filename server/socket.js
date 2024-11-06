@@ -4,8 +4,8 @@ export const createSocket = (server) => {
   let list = [];
   let userlist = [];
   let previousWord = "";
-  let countdown = 5;
-  let start = false;
+  let started = false;
+
   const io = new Server(server, {
     cors: {
       cors: {
@@ -18,15 +18,16 @@ export const createSocket = (server) => {
     list = [];
     io.to("testroom").emit("wordList", { list: list });
     previousWord = "";
-    countdown = 5;
   };
+
   io.on("connection", (socket) => {
     console.log(socket.id + "연결");
-    if (start) {
-      socket.emit("late", {});
-    }
+    socket.on("started", () => {
+      console.log("엥");
+      socket.emit("started", { started });
+    });
+
     socket.on("word", async (word) => {
-      console.log(word.msg);
       if (list.some((item) => item.msg === word.msg)) {
         reset();
         io.to("testroom").emit("overlapWord", {
@@ -58,16 +59,30 @@ export const createSocket = (server) => {
       io.to("testroom").emit("start", { startUser: data.nickname });
     });
     socket.on("end", () => {
-      console.log("엥");
       io.to("testroom").emit("end", { userlist: Object.values(userlist) });
     });
+
     socket.on("enter", (data) => {
+      for (let i = 0; i < Object.values(userlist).length; i++) {
+        if (Object.values(userlist)[i].nickname == data.nickname) {
+          socket.emit("LoginResult", { result: "disapproval" });
+          return;
+        }
+      }
+      socket.emit("LoginResult", { result: "approval" });
       socket.join("testroom");
+      if (Object.keys(userlist).length <= 1) {
+        io.to("testroom").emit("endGame", {});
+      }
+
       io.to("testroom").emit("wordList", { list: list });
       userlist[socket.id] = { nickname: data.nickname };
       io.to("testroom").emit("userList", { userlist: Object.values(userlist) });
     });
 
+    socket.on("userList", () => {
+      io.to("testroom").emit("userList", { userlist: Object.values(userlist) });
+    });
     socket.on("disconnect", () => {
       if (socket.id in userlist) {
         let a = userlist[socket.id].nickname;

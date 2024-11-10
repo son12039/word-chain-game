@@ -10,7 +10,6 @@
 
 html,
 body,
-div,
 span,
 applet,
 object,
@@ -138,4 +137,8 @@ a {
 }
 * {
   box-sizing: border-box;
+}
+.my-title {
+  color: #333333; /* 예시로 짙은 회색으로 설정 */
+  font-size: 24px;
 }

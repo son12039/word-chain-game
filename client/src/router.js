@@ -1,14 +1,14 @@
 import { createBrowserRouter } from "react-router-dom";
-import Socket from "./Socket";
-import WaitingRoom from "./WaitingRoom";
+import GameRoom from "./pages/GameRoom";
+import WaitingRoom from "./pages/WatingRoom";
 const router = createBrowserRouter([
-  {
-    path: "/game",
-    element: <Socket />,
-  },
   {
     path: "/",
     element: <WaitingRoom />,
+  },
+  {
+    path: "/game",
+    element: <GameRoom />,
   },
 ]);
 

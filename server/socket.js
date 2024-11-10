@@ -1,11 +1,10 @@
 import { Server } from "socket.io";
 import { wordCheck } from "./wordAPI.js";
 export const createSocket = (server) => {
-  let list = [];
-  let userlist = [];
-  let previousWord = "";
-  let started = false;
-
+  let wordList = [];
+  let userList = new Map();
+  let talkList = [];
+  let gameState = false;
   const io = new Server(server, {
     cors: {
       cors: {
@@ -14,21 +13,93 @@ export const createSocket = (server) => {
       },
     },
   });
-  const reset = () => {
-    list = [];
-    io.to("testroom").emit("wordList", { list: list });
+
+  io.on("connection", (socket) => {
+    // 접속
+    console.log(socket.id + "연결");
+
+    // 입장
+    socket.on("accessRequest", (nickname) => {
+      console.log(nickname, "입장");
+      if (!userList.has(nickname)) {
+        userList.set(nickname, socket.id);
+        socket.join("permission");
+        socket.emit("accessResult", {
+          result: nickname,
+          talkList: Array.from(talkList),
+          gameState: gameState,
+        });
+        console.log("성공");
+        io.to("permission").emit("UserFlow", Array.from(userList.keys()));
+      } else {
+        console.log("실패");
+        socket.emit("accessResult", { result: null });
+      }
+    });
+    // 재입장
+    socket.on("reconnect", (nickname) => {
+      userList.set(nickname, socket.id);
+      socket.join("permission");
+      socket.emit("accessResult", {
+        result: nickname,
+        talkList: Array.from(talkList),
+        gameState: gameState,
+        reconnect: "reconnect",
+      });
+      io.to("permission").emit("UserFlow", Array.from(userList.keys()));
+    });
+    // 채팅
+    socket.on("msgSubmit", (data) => {
+      console.log(data);
+      talkList.push(data);
+      io.to("permission").emit("msgSubmit", Array.from(talkList));
+    });
+    socket.on("talkList", () => {
+      Array.from(talkList);
+    });
+    // 게임
+    socket.on("start", (nickname) => {
+      io.to("permission").emit("start", nickname);
+      gameState = true;
+    });
+    socket.on("userList", () => {
+      io.to("permission").emit("userList", {
+        userList: Array.from(userList.keys()),
+      });
+    });
+    socket.on("end", (data) => {
+      io.to("permission").emit("end", data);
+      gameState = false;
+      console.log(gameState);
+    });
+    // 이탈
+    socket.on("disconnect", () => {
+      for (let [nickname, id] of userList.entries()) {
+        if (id === socket.id) {
+          userList.delete(nickname);
+          io.to("permission").emit("UserFlow", Array.from(userList.keys()));
+          break;
+        }
+      }
+    });
+  });
+};
+
+/*  
+const reset = () => {
+    list.clear();
+    io.to("testroom").emit("wordList", { list: Array.from(list.values()) });
     previousWord = "";
   };
 
-  io.on("connection", (socket) => {
-    console.log(socket.id + "연결");
-    socket.on("started", () => {
+
+socket.on("started", () => {
       console.log("엥");
       socket.emit("started", { started });
     });
 
     socket.on("word", async (word) => {
-      if (list.some((item) => item.msg === word.msg)) {
+      if (list.has(word.msg)) {
         reset();
         io.to("testroom").emit("overlapWord", {
           overlapWord: word.nickname,
@@ -38,10 +109,10 @@ export const createSocket = (server) => {
         if (definitions) {
           if (word.msg.charAt(0) == previousWord || previousWord == "") {
             previousWord = word.msg.charAt(word.msg.length - 1);
-            list.unshift(word);
+            list.set(word.msg, word);
             io.to("testroom").emit("wordAdd", {
-              word: word,
-              definitions: definitions,
+              word,
+              definitions,
             });
           } else {
             reset();
@@ -63,8 +134,8 @@ export const createSocket = (server) => {
     });
 
     socket.on("enter", (data) => {
-      for (let i = 0; i < Object.values(userlist).length; i++) {
-        if (Object.values(userlist)[i].nickname == data.nickname) {
+      for (let user of Object.values(userlist)) {
+        if (user.nickname === data.nickname) {
           socket.emit("LoginResult", { result: "disapproval" });
           return;
         }
@@ -75,7 +146,7 @@ export const createSocket = (server) => {
         io.to("testroom").emit("endGame", {});
       }
 
-      io.to("testroom").emit("wordList", { list: list });
+      io.to("testroom").emit("wordList", { list: Array.from(list.values()) });
       userlist[socket.id] = { nickname: data.nickname };
       io.to("testroom").emit("userList", { userlist: Object.values(userlist) });
     });
@@ -98,6 +169,4 @@ export const createSocket = (server) => {
         console.log("헐");
       }
       console.log(socket.id + "끊김");
-    });
-  });
-};
+    }); */

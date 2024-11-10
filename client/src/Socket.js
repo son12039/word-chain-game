@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSocket } from "./SocketContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import { point as changePoint } from "./api/memberAPI";
-import "./assets/index.css";
+// import "./assets/index.css";
 const Socket = () => {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
@@ -12,7 +12,6 @@ const Socket = () => {
   const socket = useSocket();
   const location = useLocation();
   const state = location?.state;
-  console.log(state);
   useEffect(() => {
     setNickname(sessionStorage.getItem("nickname"));
     if (socket) {
@@ -80,7 +79,7 @@ const Socket = () => {
 
   return (
     <div className="game">
-      <h1 className="Title">오타,연결되지 않을 때,중복입력 시 게임오버</h1>
+      {/* <h1 className="Title">오타,연결되지 않을 때,중복입력 시 게임오버</h1>
       <h1>{nickname ? `${nickname}님` : ""}</h1>
       <button onClick={onClick} disabled={val.length < 2}>
         보내기
@@ -121,7 +120,7 @@ const Socket = () => {
               {item}
             </div>
           ))}
-      </div>
+      </div> */}
     </div>
   );
 };

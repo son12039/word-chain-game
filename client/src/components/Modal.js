@@ -1,4 +1,3 @@
-// Modal.js
 import Swal from "sweetalert2";
 import { user } from "../api/memberAPI";
 
@@ -22,26 +21,18 @@ const Modal = async () => {
       const password = document.getElementById("swal-input-password").value;
       let nickname = document.getElementById("swal-input-nickname").value;
 
-      if (!id || id.trim() === "") {
-        Swal.showValidationMessage("아이디를 입력해주세요!");
-        return false;
-      }
       const idRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,12}$/;
       if (!idRegex.test(id)) {
         Swal.showValidationMessage(
-          "아이디는 영문자,그리고 숫자 각각 1개이상포함 6~12자만 입력 가능합니다."
+          "아이디는 영문자, 숫자 각각 1개이상포함 6~12자만 입력 가능합니다."
         );
         return false;
       }
 
-      if (!password || password.trim() === "") {
-        Swal.showValidationMessage("비밀번호를 입력해주세요!");
-        return false;
-      }
       const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{8,14}$/;
       if (!passwordRegex.test(password)) {
         Swal.showValidationMessage(
-          "비밀번호는 영문자,그리고 숫자 각각 1개이상포함 8~14자만 입력 가능합니다."
+          "비밀번호는 영문자, 숫자 각각 1개이상포함 8~14자만 입력 가능합니다."
         );
 
         return false;
@@ -53,6 +44,7 @@ const Modal = async () => {
         document.getElementById("swal-input-nickname").value = "";
         return false;
       }
+
       const userInfo = await user({ id, password, nickname });
       if (userInfo === "로그인 실패") {
         Swal.showValidationMessage("잘못된 로그인 정보이거나,없는 계정입니다.");

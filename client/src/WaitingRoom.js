@@ -2,7 +2,7 @@ import { useSocket } from "./SocketContext";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Modal from "./components/Modal";
-import "./assets/WaitingRoom.css";
+// import "./assets/WaitingRoom.css";
 const WaitingRoom = () => {
   const socket = useSocket();
   const navigate = useNavigate();

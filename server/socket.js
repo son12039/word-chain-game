@@ -5,6 +5,7 @@ export const createSocket = (server) => {
   let userList = new Map();
   let talkList = [];
   let gameState = false;
+  let previousWord = "";
   const io = new Server(server, {
     cors: {
       cors: {
@@ -17,7 +18,6 @@ export const createSocket = (server) => {
   io.on("connection", (socket) => {
     // 접속
     console.log(socket.id + "연결");
-
     // 입장
     socket.on("accessRequest", (nickname) => {
       console.log(nickname, "입장");
@@ -38,15 +38,18 @@ export const createSocket = (server) => {
     });
     // 재입장
     socket.on("reconnect", (nickname) => {
-      userList.set(nickname, socket.id);
-      socket.join("permission");
-      socket.emit("accessResult", {
-        result: nickname,
-        talkList: Array.from(talkList),
-        gameState: gameState,
-        reconnect: "reconnect",
-      });
-      io.to("permission").emit("UserFlow", Array.from(userList.keys()));
+      if (!userList.has(nickname)) {
+        const a = userList.set(nickname, socket.id);
+        socket.join("permission");
+        socket.emit("accessResult", {
+          result: nickname,
+          talkList: Array.from(talkList),
+          gameState: gameState,
+          reconnect: "reconnect",
+        });
+        io.to("permission").emit("UserFlow", Array.from(userList.keys()));
+        socket.emit("test", nickname);
+      }
     });
     // 채팅
     socket.on("msgSubmit", (data) => {
@@ -67,6 +70,17 @@ export const createSocket = (server) => {
         userList: Array.from(userList.keys()),
       });
     });
+    const wordTest = async (data) => {
+      const a = await wordCheck(data.word);
+    };
+    socket.on("word", (data) => {
+      if (data) {
+        wordList.unshift(data);
+        io.to("permission").emit("word", data);
+      } else {
+        socket.emit("wordList", Object.values(wordList));
+      }
+    });
     socket.on("end", (data) => {
       io.to("permission").emit("end", data);
       gameState = false;
@@ -77,6 +91,7 @@ export const createSocket = (server) => {
       for (let [nickname, id] of userList.entries()) {
         if (id === socket.id) {
           userList.delete(nickname);
+          console.log(nickname, "종료");
           io.to("permission").emit("UserFlow", Array.from(userList.keys()));
           break;
         }

@@ -1,7 +1,6 @@
 import Swal from "sweetalert2";
 
 const GameModal = async (nickname) => {
-  console.log(nickname == true);
   await Swal.fire({
     title:
       nickname != true

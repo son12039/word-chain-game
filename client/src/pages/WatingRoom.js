@@ -39,10 +39,30 @@ const WaitingRoom = () => {
     await ResponseModal(data);
     if (!data) await fetchUserInfo();
   };
+
+  const accessResultHandler = (data) => {
+    if (data.reconnect == "reconnect") {
+      setTalkList(data.talkList);
+    } else if (data.result) {
+      response(data.result);
+      sessionStorage.setItem("nickname", data.result);
+      setTalkList(data.talkList);
+    } else {
+      setNickname("");
+      response(false);
+      return;
+    }
+    if (data.gameState) {
+      GameModal(true);
+      navigate("/game");
+    }
+  };
+
   useEffect(() => {
     if (socket) {
       const nickname = sessionStorage.getItem("nickname");
       if (nickname) {
+        console.log("히에엑");
         socket.emit("reconnect", nickname);
         setNickname(nickname);
       } else {
@@ -50,24 +70,7 @@ const WaitingRoom = () => {
       }
 
       //로그인요청, 결과에 따른 로직
-      socket.on("accessResult", (data) => {
-        if (data.reconnect == "reconnect") {
-          setTalkList(data.talkList);
-        } else if (data.result) {
-          response(data.result);
-          sessionStorage.setItem("nickname", data.result);
-          setTalkList(data.talkList);
-        } else {
-          setNickname("");
-          response(false);
-          return;
-        }
-        if (data.gameState) {
-          console.log("내가 원하는곳");
-          GameModal(true);
-          navigate("/game");
-        }
-      });
+      socket.on("accessResult", accessResultHandler);
       socket.on("reconnect", () => {
         response(false);
       });
@@ -78,15 +81,20 @@ const WaitingRoom = () => {
         setTalkList(data);
       });
       socket.on("start", (nickname) => {
-        console.log("내가 원치않는곳");
+        console.log("시작누름");
         GameModal(nickname);
         navigate("/game");
       });
+
+      return () => {
+        socket.off("accessResult", accessResultHandler);
+      };
     }
   }, [socket]);
 
   useEffect(() => {
     if (socket && nickname && !sessionStorage.getItem("nickname")) {
+      console.log("히에에엥ㄱ");
       socket.emit("accessRequest", nickname);
     }
   }, [nickname]);

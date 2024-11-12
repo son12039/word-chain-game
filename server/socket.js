@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { wordCheck } from "./wordAPI.js";
 export const createSocket = (server) => {
-  let wordList = [];
+  let wordList = new Set();
   let userList = new Map();
   let talkList = [];
   let gameState = false;
@@ -15,6 +15,22 @@ export const createSocket = (server) => {
     },
   });
 
+  // 끝말잇기규칙함수
+  const wordTest = async (data) => {
+    console.log(data);
+    const wordInfo = await wordCheck(data.word);
+    if (!wordInfo)
+      return { wrong: "존재하지 않는 단어 입력!!", nickname: data.nickname };
+    if (previousWord !== data.word[0] && previousWord)
+      return { wrong: "일치하지 않는 단어 입력!!", nickname: data.nickname };
+    if (wordList.has(data.word))
+      return { wrong: "중복된 단어 입력!!", nickname: data.nickname };
+    previousWord = data.word[data.word.length - 1];
+    wordList.add(data.word);
+    return { wordInfo: wordInfo, wrong: "현재 단어 : " + data.word };
+  };
+
+  // 소켓함수들
   io.on("connection", (socket) => {
     // 접속
     console.log(socket.id + "연결");
@@ -65,27 +81,26 @@ export const createSocket = (server) => {
       io.to("permission").emit("start", nickname);
       gameState = true;
     });
-    socket.on("userList", () => {
-      io.to("permission").emit("userList", {
-        userList: Array.from(userList.keys()),
-      });
-    });
-    const wordTest = async (data) => {
-      const a = await wordCheck(data.word);
-    };
-    socket.on("word", (data) => {
-      if (data) {
-        wordList.unshift(data);
-        io.to("permission").emit("word", data);
-      } else {
-        socket.emit("wordList", Object.values(wordList));
-      }
-    });
     socket.on("end", (data) => {
       io.to("permission").emit("end", data);
       gameState = false;
       console.log(gameState);
     });
+
+    socket.on("userList", () => {
+      io.to("permission").emit("userList", {
+        userList: Array.from(userList.keys()),
+      });
+    });
+    socket.on("word", async (data) => {
+      if (data) {
+        const wordInfo = await wordTest(data);
+        io.to("permission").emit("word", wordInfo);
+      } else {
+        socket.emit("wordList", Object.values(wordList));
+      }
+    });
+
     // 이탈
     socket.on("disconnect", () => {
       for (let [nickname, id] of userList.entries()) {

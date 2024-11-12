@@ -10,6 +10,8 @@ const GameRoom = () => {
   const [wordList, setWordList] = useState([]);
   const [nickname, setNickname] = useState("");
   const [userList, setUserList] = useState([]);
+  const [gameState, setGameState] = useState("");
+  const [wordDesc, setWordDesc] = useState([]);
   const end = () => {
     socket.emit("end");
   };
@@ -49,7 +51,11 @@ const GameRoom = () => {
       socket.on("wordList", (list) => {
         setWordList(list);
       });
+
       socket.on("word", (data) => {
+        console.log(data);
+        setGameState(data.wrong);
+        setWordDesc(data.wordInfo);
         setWordList((prevList) => [data, ...prevList]);
       });
       socket.on("end", () => {
